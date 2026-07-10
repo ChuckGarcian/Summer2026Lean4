@@ -8,13 +8,13 @@ $$\forall n \in \mathbf{Z},\quad a_{n + 2} - a_{n+1} = a_{n + 1} - a_n$$
 
 From the invariant definition, we have the following properties
 
-**Theorem 1:** For any arithmetic progression, the common difference is constant. That is, $\forall n \in \mathbf{N}\quad a_{n+1} - a_{n} = d$ where $d$ is some constant
+**Theorem 1:** For any arithmetic progression, the common difference is constant. That is, $\forall n \in \mathbf{N}\quad a_{n+1} - a_{n} = d$ where $d$ is some constant.
 
-**Theorem 2:** Let $a_n$ be an arithmetic progression with common difference $d$. Then the $a_i$ value of the sequence is given by $a_i = a_0 + i \cdot d$
+**Theorem 2:** Let $a_n$ be an arithmetic progression with common difference $d$. Then the $a_i$ value of the sequence is given by $a_i = a_0 + i \cdot d$.
 
-**Thoerem 3:** Let $a_n$ be an arithmic progression with common difference $d$, then the sum of of values from $\{a_0, \ldots, a_k\}$ is given by $\sum_i a_i = k\cdot a_0+\frac{k (k - 1)}{2}d$
+**Thoerem 3:** Let $a_n$ be an arithmic progression with common difference $d$, then the sum of of values from $\{a_0, \ldots, a_k\}$ is given by $\sum_i a_i = k\cdot a_0+\frac{k (k - 1)}{2}d$.
 
--------
+-------------
 
 **Theorem 1:** For any arithmetic progression, the common difference is constant. That is, $\forall n \in \mathbf{N}\quad a_{n+1} - a_{n} = d$ where $d$ is some constant
 

@@ -13,8 +13,11 @@ variable {α : Type u}
 class ArithProg (a: ℕ → α) [AddCommGroup α] where
   equal_diff : ∀ n : ℕ, a (n + 1) - a n = a (n + 2) - a (n + 1)
 
-namespace ArithProg
 
+-- variable {K : Type*} [Field K] {V : Type*} [AddCommGroup V] [Module K V]
+
+
+namespace ArithProg
 
 variable {α : Type u} [AddCommGroup α]
 variable (a : ℕ → α) [inst : ArithProg a]
@@ -27,9 +30,11 @@ theorem thm1 : ∀ n : ℕ, a (n + 1) - a n = d := by
 
   induction' n with k hk
 
+  -- Base Case
   case zero =>
     simp only [zero_add]
 
+  -- Inductive Case
   case succ =>
 
     -- Simplify the left hand side so we can apply the defn arithProg
