@@ -1,0 +1,1 @@
+Description: Directory contains various practice with finset, fintype and finset.range
