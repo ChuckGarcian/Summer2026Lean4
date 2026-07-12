@@ -1,3 +1,8 @@
+---
+header-includes:
+  - \usepackage{amsmath}  
+---
+
 ## Definitions
 
 **Def:** An Airthmetic Progresion is a sequence $a_1,\ldots, a_n$ that satisifies the following invariant (It is defined invariantly)
@@ -94,6 +99,10 @@ $$a_{k+1} -  a_k = d$$
 
 Use the invariant definition of arithmetic progressions
 
+$$
+a_{k+1} = a_k + d
+$$
+
 $$d = d$$
 
 This is a true statement by reflexivity of additive commutative groups. This completes the base case. $\square$
@@ -101,3 +110,47 @@ This is a true statement by reflexivity of additive commutative groups. This com
 \newpage
 
 **Thoerem 3:** Let $a_n$ be an arithmic progression with common difference $d$, then the sum of of values from $\{a_0, \ldots, a_k\}$ is given by $\sum_i a_i = k\cdot a_0+\frac{k (k - 1)}{2}d$.
+
+**Proof:**
+
+Let $a_n$ be an arithmic progression with common difference $d$.
+
+We want to show that the sum of values from $\{a_0, \ldots, a_k\}$ is given by $\sum_i a_i = k\cdot a_0+\frac{k (k - 1)}{2}d$.
+
+We will use induction. Let $P(n)$ be the statement.
+
+**Base Case:** $P(n=0)$
+
+Observe,
+The left hand side of $P(0)$ is
+
+$$\sum_{i=0}^0 a_0 = a_0$$
+
+Moreover, the right hand is
+
+$$a_0 + \frac{0 (0 - 1)}{2}d$$
+$$ = a_0 + 0$$
+$$ = a_0$$
+
+By reflexivity, $(2)$ and $(5)$ are equal. This completes the base case.
+
+**Inductive Case:** Let the inductive hypothesis be that the statement is true for some $k\geq 0$. We must show that it is also true for $k+1$. That is:
+
+$$\tag{IH} \text{Assume: } P(k): \sum_{i=0}^{k} a_i = k\cdot a_0+\frac{k (k - 1)}{2}d $$
+$$\tag{Goal} \text{Goal: } P(k+1): \sum_{i=0}^{k+1} a_i = (k+1)\cdot a_0+\frac{(k+1) (k + 1- 1)}{2}d $$
+
+Observe, the left hand side we can write
+
+$$=\sum_{i=0}^{k+1} a_i = \sum_{i=0}^{k}a_i + a_{k+1}$$
+
+$$=\sum_{i=0}^{k+1} a_i = \sum_{i=0}^{k}a_i + a_{k+1}$$
+
+Invoke the inductive hypothesis
+
+$$=k\cdot a_0+\frac{k (k - 1)}{2}d + a_{k+1}$$
+
+Using theorem 2, we can write $a_{k+1} = a_0 + (k+1)d$. Subsituting this in $(8)$, we have
+
+$$=k\cdot a_0+\frac{k (k - 1)}{2}d + a_0 + (k+1)d$$
+
+$$=k\cdot a_0+\frac{k (k - 1)}{2}d + a_0 + (k+1)d$$
