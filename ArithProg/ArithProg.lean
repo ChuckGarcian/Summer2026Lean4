@@ -124,6 +124,7 @@ theorem thm3 : ∀ n, (∑ i ∈ Finset.range n, a i) = n • a 0 + (n • (n - 
     simp
 
     -- Basically done; show goal is an algebraic identity
+
     have key : k * (k - 1) / 2 + k = (k + 1) * k / 2 :=
       (Nat.triangle_succ k).symm
 
