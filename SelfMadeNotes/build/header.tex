@@ -1,0 +1,30 @@
+\usepackage[includehead,margin=1.5in           ,headheight=16pt]{geometry}
+\usepackage{amsmath,amssymb,mathtools}
+\usepackage{microtype}
+\usepackage{fancyhdr}
+\usepackage{physics}
+\usepackage{quantikz}
+
+\pagestyle{fancy}
+\fancyhead[L]{Discrete Math HW 1}
+\fancyhead[R]{\thepage}
+\fancyfoot{}
+
+
+% Create a counter for questions
+% Create a counter for questions
+\newcounter{questionNum}
+\newcommand{\reduc}[2]{#1 \preccurlyeq #2}
+
+% Define the \question command
+\newcommand{\question}{%
+  \par\medskip             % Start a new paragraph and add a little vertical space
+  \stepcounter{questionNum}% Increment the counter
+  \noindent\textbf{Question \thequestionNum:} % Bold text, no indentation
+}
+
+\newcommand{\answer}{%
+  \par\medskip
+  \noindent\textbf{Answer:}
+}
+% \counterwithin*{questionNum}{section}
