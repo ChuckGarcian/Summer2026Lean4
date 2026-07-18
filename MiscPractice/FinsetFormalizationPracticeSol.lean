@@ -4,6 +4,7 @@ import Mathlib.Data.Finset.Defs
 import Mathlib.Algebra.BigOperators.Group.Finset.Defs
 import Mathlib.Data.Fintype.Card
 
+
 /-
 FORMALIZATION PRACTICE: Finset / Fintype / Finset.range
 For each comment, write the `example : ... := by sorry` yourself.
@@ -13,7 +14,7 @@ Tip: hover errors about `ℕ` vs `Finset ℕ` usually mean you forgot a
 type ascription like `({1, 2} : Finset ℕ)`.
 -/
 
-------------------------------------------------------------
+-----------------x-------------------------------------------
 -- PART 1: Finset
 ------------------------------------------------------------
 
@@ -102,29 +103,5 @@ example (n : ℕ) : Finset.sum (Finset.range n) 1 = n := by sorry
 example (n : ℕ) (s : Finset.range n) : (∑ x ∈ Finset.range n, 1)  = n := by  sorry
 
 
--- R4. For any function f : ℕ → ℕ and any natural n: the sum of f
---     over Finset.range (n + 1) equals the sum of f over
---     Finset.range n, plus f n.
-
 -- ∑ x ∈ [n + 1] f(x) = ∑ [n] + f(n)
-example (f : ℕ → ℕ) (n : ℕ) : (∑ x ∈ Finset.range (n + 1), f x) = ((∑ x ∈ Finset.range n, f x) + f n) := by sorry
-
-
--- R5. For any natural n: twice the sum of i over Finset.range n
---     equals n * (n - 1).      (Gauss — do it by induction.)
-
-
-------------------------------------------------------------
--- BONUS: statements that should FAIL to typecheck or be false.
--- Try to write them anyway and understand the error / find the
--- counterexample. This teaches you as much as the true ones.
-------------------------------------------------------------
-
--- B1. Try to state "ℕ has a Fintype instance" — why can't you
---     synthesize it?
-
--- B2. Try to state Finset.range n = Finset.univ (for Fin n) —
---     why does this not even typecheck?
-
--- B3. State "for all finsets s t, (s ∪ t).card = s.card + t.card"
---     and find the counterexample showing it's false.
+-- example (f : ℕ → ℕ) (n : ℕ) : (∑ x ∈ Finset.range (n + 1), f x) = ((∑ x ∈ Finset.range n, f x) + f n) := by sorry

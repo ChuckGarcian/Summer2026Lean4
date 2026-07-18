@@ -147,3 +147,4 @@ instance : ArithProg b where
   equal_diff n := by simp [b]; ring
 
 #check thm1 (b)
+#print thm1 (b)

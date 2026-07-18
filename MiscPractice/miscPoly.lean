@@ -56,6 +56,7 @@ example {R : Type*} [Semiring R] [NoZeroDivisors R] {p q : R[X]} :
 
 -- Getting the support of a polynomial is getting where its terms are defined
 #check (((X^2 + X : R[X])).support).toFinsupp
+
 variable (Y : R)
 #check (((X^2 + X : R[X])).eval Y)
 #check (((X^2 + X : R[X])).sum fun _ => 1)

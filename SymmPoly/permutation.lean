@@ -34,7 +34,7 @@ theorem symmInv
 #check Finset.sum Finset.univ fun π ↦ MvPolynomial.rename π p -- Symmetrization
 
 
-variable (fn := fun (q : MvPolynomial σ Real) (π : ↑(Equiv.Perm σ)) ↦ MvPolynomial.rename π q)
+variable (fn := fun (q : MvPolynomial σ Real) (π : (Equiv.Perm σ)) ↦ MvPolynomial.rename π q)
 variable (N := p.vars.card) -- Number of variables in a multivarirate poly
 
 
@@ -53,8 +53,9 @@ Let p: Rᴺ ↦ R be a polynomial, then $L(p)(x) = \frac{1}{N!}\sum_{\pi \in S_n
 p(x\circ \pi)$ is the symmtization of $p$
 -/
 noncomputable def symmetrization : MvPolynomial σ Real :=
-  (Finset.sum Finset.univ (fn p)) * MvPolynomial.C ((1.0:Real) / N.factorial)
+  (Finset.sum Finset.univ (fn p)) * MvPolynomial.C ((1.0 : Real) / N.factorial)
 
+theorem : (MvPolynomial σ Real)
 
 /- Sanity Checks-/
 #check symmetrization

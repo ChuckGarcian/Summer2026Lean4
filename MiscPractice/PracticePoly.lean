@@ -125,3 +125,32 @@ example
 
   case h => rfl
 
+
+
+-- Exercise 7 (Divisibility through a sum).
+-- Formalize and prove: for all d : R[X], f : ℕ → R[X], n : ℕ, if d divides
+-- f k for every k ∈ range n, then d divides the sum of f over range n.
+-- Suggested tool: Finset.dvd_sum.
+
+
+
+-- Exercise 8 (A polynomial evaluated is the sum of its evaluated monomials).
+-- Formalize and prove: for all P : R[X] and l : R, P.eval l equals the sum
+-- over k ∈ range (P.natDegree + 1) of (P.coeff k) * l ^ k.
+-- Suggested tools: as_sum_range' (with natDegree P < natDegree P + 1),
+-- eval_finset_sum, then simp.
+
+-- Exercise 9 (Termwise divisibility).
+-- Formalize and prove: for all l a : R and k : ℕ, the polynomial (X - C l)
+-- divides (C a * X ^ k - C a * C l ^ k) in R[X].
+-- Suggested tools: sub_dvd_pow_sub_pow applied at X and C l, then the
+-- technique of Exercise 3 to absorb the coefficient (or mul_sub + Dvd.dvd.mul_left).
+
+-- Exercise 10 (Assembly: the forward direction of Axler 4.6).
+-- Formalize and prove: for all P : R[X] and l : R, if P.eval l = 0 then
+-- (X - C l) divides P.
+-- Plan: rewrite P as P - C (P.eval l) using the hypothesis; express both P
+-- and C (P.eval l) as sums over range (P.natDegree + 1) (as_sum_range',
+-- Exercise 8, map_sum); combine with Finset.sum_sub_distrib; conclude with
+-- Exercises 7 and 9.
+-- Forbidden: X_sub_C_dvd_sub_C_eval, dvd_iff_isRoot (they are the answer).
