@@ -65,9 +65,20 @@ noncomputable def symmetrization : MvPolynomial σ Int :=
 /- Define: p(x,y) = x² + y² -/
 def basicSymmetric: MvPolynomial (Fin 2) Int := X 0 ^2 + X 1 ^2
 
+#check MvPolynomial.rename
+#check MvPolynomial.coeff
+#check MvPolynomial.ext
+
 
 /- Example 1: Indeed, p(x,y) = x² + y² is symmetric -/
-example : MvPolynomial.IsSymmetric basicSymmetric := by sorry
+example : MvPolynomial.IsSymmetric basicSymmetric:= by
+  intro π
+  simp [basicSymmetric]
+  fin_cases π
+  simp
+  conv=> lhs
+  simp
+  ring
 
 
 /- Example 2:
@@ -103,3 +114,31 @@ Then if $p$ is not symmetric, then certaintly it shall be symmetric on
 application of $L$. Formally, the following is a true statement
 -/
 theorem thm2 : ∀ q: MvPolynomial σ Int, MvPolynomial.IsSymmetric (symmetrization (p:=q)) := by sorry
+
+
+-- Hi!
+
+
+-- Could I possibly get a hint on a problem im having.
+
+-- I'm trying to show that the bivariate polynomial p(x,y) = x² + y² is indeed symmetric.
+-- So far, I've been trying to show it using externalty (code below) but am unsure how to handle
+-- the coefficient function.
+
+-- Another approach i thought of was to some brute force through all permutatoin maps
+-- (2! in this case) and show equality in each case, but am unsure how I would go
+-- about setting that up. Mainly, in this approach, im unsure of what I would actually
+-- pass to the cases tactic -- one would have to turn Equiv.perm (fin 2) into an
+-- inductive type somehow? Then from there it should be straight forward calc.
+
+-- Any help/hint is appreciated. below is my info view and current code.
+-- Thanks!
+
+-- Infoview:
+-- N : ℕ
+-- π : Equiv.Perm (Fin 2)
+-- ⊢ ∀ (m : Fin 2 →₀ ℕ), coeff m (X (π 0) ^ 2 + X (π 1) ^ 2) = coeff m (X 0 ^ 2 + X 1 ^ 2)
+
+-- Code:
+-- /- Define: p(x,y) = x² + y² -/
+-- def basicSymmetric: MvPolynomial (Fin 2) Int := X 0 ^2 + X 1 ^2
