@@ -7,8 +7,12 @@ import Mathlib.Data.Finset.Image
 import Mathlib.Data.Real.Basic
 import Mathlib.Data.Nat.Factorial.Basic
 import Mathlib.Tactic.Explode
+import Mathlib.Tactic.Widget.LibraryRewrite
+import Paperproof
+
 
 noncomputable section
+
 
 -- set_option trace.Meta.synthInstance true
 open MvPolynomial
@@ -20,27 +24,10 @@ open Finset
 variable (σ τ : Type*)
 variable [Fintype σ] [DecidableEq σ]
 variable [Fintype τ] [DecidableEq τ]
-variable (p : MvPolynomial σ Int)
+variable (p : MvPolynomial σ Rat)
 
 
-/-
-Let p be a symmetric multivariate polynomial; then p is invariant
-under any permutation of its variables.
--/
-theorem symmInv
-  (π : ↑(Equiv.Perm σ))
-  : (MvPolynomial.IsSymmetric p) → (MvPolynomial.rename π p  = p) := by
-  exact fun a =>
-    MvPolynomial.ext ((MvPolynomial.rename π) p) p
-      fun m =>
-        congrArg (MvPolynomial.coeff m) (a π)
-
-
-#explode symmInv
-#check Finset.sum Finset.univ fun π ↦ MvPolynomial.rename π p -- Symmetrization
-
-
-variable (fn := fun (q : MvPolynomial σ Int) (π : ↑(Equiv.Perm σ)) ↦ MvPolynomial.rename π q)
+variable (fn := fun (q : MvPolynomial σ Rat) (π : Equiv.Perm σ) ↦ MvPolynomial.rename π q)
 variable (N := p.vars.card) -- Number of variables in a multivarirate poly
 
 
@@ -48,48 +35,85 @@ variable (N := p.vars.card) -- Number of variables in a multivarirate poly
 #check Finset.sum
 #check Finset.sum Finset.univ (fn p) -- Summation over all permutations of the polynomial p
 #check Finset.card
+#check Finset.sum Finset.univ fun π ↦ MvPolynomial.rename π p -- Symmetrization
 
 #check N
 #check Nat.factorial N
 #check  (Finset.sum Finset.univ (fn p)) * MvPolynomial.C ((1.0:Real) / N.factorial)
 
 
+/------------------------------- Definitions -------------------------------/
+
+
 /-
 Let p: Rᴺ ↦ R be a polynomial, then $L(p)(x) = \frac{1}{N!}\sum_{\pi \in S_n}
 p(x\circ \pi)$ is the symmtization of $p$
 -/
-noncomputable def symmetrization : MvPolynomial σ Int :=
-  (Finset.sum Finset.univ (fn p)) * MvPolynomial.C ((1: Int) / N.factorial)
+def symmetrization : MvPolynomial σ Rat :=
+  (Finset.sum Finset.univ (fn p)) * MvPolynomial.C ((1: Rat) / N.factorial)
+
+
+def symmetrization' (q : MvPolynomial σ Rat) : MvPolynomial σ Rat :=
+  (1/(Fintype.card (Equiv.Perm σ)) : Rat) • ∑ π : (Equiv.Perm σ), MvPolynomial.rename π q
 
 
 /- Define: p(x,y) = x² + y² -/
-def basicSymmetric: MvPolynomial (Fin 2) Int := X 0 ^2 + X 1 ^2
-
-#check MvPolynomial.rename
-#check MvPolynomial.coeff
-#check MvPolynomial.ext
+def basicSymmetric: MvPolynomial (Fin 2) Rat := X 0 ^2 + X 1 ^2
 
 
-/- Example 1: Indeed, p(x,y) = x² + y² is symmetric -/
+/- Define: p(x,y) = x² + y + 1 -/
+def NotSymmetricPoly: MvPolynomial (Fin 2) Rat := X 0 ^2 + X 1 + 1
+
+
+/------------------------------- Examples -------------------------------/
+
+/- Example 1: Indeed, p(x,y) = x² + y² is symmetric (Chuck Solution)-/
 example : MvPolynomial.IsSymmetric basicSymmetric:= by
   intro π
   simp [basicSymmetric]
-  fin_cases π
-  simp
-  conv=> lhs
-  simp
+  fin_cases π; simp; simp
   ring
+
+
+/- Example 1 sol by Albert Smith, Zulip:
+https://leanprover.zulipchat.com/#narrow/channel/113488-general/topic/Showing.20x.C2.B2.20.2B.20y.C2.B2.20is.20symmetric/near/611508693
+-/
+example : basicSymmetric.IsSymmetric := by
+  convert psum_isSymmetric (Fin 2) Rat 2
+  simp +locals [psum]
+
+/- Example 1 sol Albert's alternative -/
+example : basicSymmetric.IsSymmetric := by
+  convert psum_isSymmetric (Fin 2) Rat 2
+  rw[psum]
+  simp [basicSymmetric]
+
+
+/- Example 1 sol other Zulip User solution -/
+example : IsSymmetric basicSymmetric := by
+  rw [IsSymmetric, basicSymmetric]
+  intro σ
+  by_cases h : σ 0 = 0
+  · have h1 : σ 1 = 1 := by sorry
+    simp [h, h1]
+  · have h' : σ 0 = 1 ∧ σ 1 =0 := by sorry
+    simp [h', add_comm]
+
+
+/- Example 1 sol, Chatgpt solution (for comparison) -/
+example : MvPolynomial.IsSymmetric basicSymmetric := by
+  unfold basicSymmetric
+  have h := MvPolynomial.psum_isSymmetric (Fin 2) Rat 2
+  rw [MvPolynomial.psum, Fin.sum_univ_two] at h
+  exact h
 
 
 /- Example 2:
   p(x,y) = x² + y² is symmetric and therefore should be invariant
   to symmetriziation.
 -/
-example : basicSymmetric = symmetrization (p := basicSymmetric) := by sorry
-
-
-/- Define: p(x,y) = x² + y + 1 -/
-def NotSymmetricPoly: MvPolynomial (Fin 2) Int := X 0 ^2 + X 1 + 1
+example : basicSymmetric = symmetrization' (q:=basicSymmetric) := by
+  simp [basicSymmetric, symmetrization']
 
 
 /- Example 3: Indeed, p(x,y) = x² + y + 1 is not symmetric! (duh) -/
@@ -100,45 +124,65 @@ example : ¬MvPolynomial.IsSymmetric NotSymmetricPoly := by sorry
 example : MvPolynomial.IsSymmetric (symmetrization (p := NotSymmetricPoly)) := by sorry
 
 
-/- Theorem 1: Symmetric polynomials are invariant to symmetrization:
-Let $p \in R[x_1, \ldots, x_n]$ be a multiviariate polynomial in $n$ variables.
-Then if $p$ is symmetric, it shall be invariant under $L(p)$. Formally
-\forall p \in R[x_1, \ldots, x_n]\colon\quad isSymm(p) \implies p = p^{symm}, p^{symm} = L(p)
+/------------------------------- Theorems -------------------------------/
+
+
+/-
+Let p be a symmetric multivariate polynomial; then p is invariant
+under any permutation of its variables.
+    ∀a ∈ Sₙ: p(x₁, … , xₙ) = p(xₐ₍₁₎, … , xₐ₍ₙ₎)
 -/
-theorem thm1 : ∀ p : MvPolynomial σ Int, MvPolynomial.IsSymmetric p → p = symmetrization (p := p) := by sorry
+theorem symmInv
+  (π : Equiv.Perm σ)
+  : (MvPolynomial.IsSymmetric p) → (MvPolynomial.rename π p  = p) := by
+    exact fun a =>
+      MvPolynomial.ext ((MvPolynomial.rename π) p) p
+        fun m =>
+          congrArg (MvPolynomial.coeff m) (a π)
+
+
+/- Theorem 1: Symmetric polynomials are invariant to symmetrization:
+Let p ∈ R[x₁, … , xₙ] be a multiviariate polynomial in n variables.
+Then if p is symmetric, it shall be invariant under Symmetrization. Formally,
+        ∀ p ∈ R[x₁, …, xₙ]: isSymm (p) → p = p^symm
+-/
+theorem thm1 : ∀ p : MvPolynomial σ Rat, MvPolynomial.IsSymmetric p → p = (symmetrization' (q:=p)) := by
+  intro p hs
+
+  -- Simplify into definitions
+  simp [symmetrization']
+
+  -- Simpilify summation into a sum of N p's, where N is normalization cnst
+  conv=>
+    rhs
+    conv=>
+      rhs
+      conv=>
+        rhs
+        enter [π]
+        -- Symmetric hypothesis gives invariance in sum terms: p = π p
+        rw [(symmInv (p := p) (π:=π)) hs]
+  simp
+
+  -- Make goal easier to read
+  set n := Fintype.card (Equiv.Perm σ) with h
+
+  -- Finiky Typed multiplication
+  rw [← MvPolynomial.C_eq_coe_nat (R := Rat) (σ := σ) n]
+  rw [MvPolynomial.C_mul']
+
+  -- Show the norm constants cancel
+  have hn : (n : Rat)⁻¹ * (n : Rat) = 1 := by sorry --Clearly n*n^⁻¹=1
+  rw [smul_smul ((n : Rat)⁻¹) (n : Rat) p]
+  rw[hn]; simp
 
 
 /- Theorem 2: Any multivariate function can be made symmetric:
-Let $p \in R[x_1, \ldots, x_n]$ be a multiviariate polynomial in $n$ variables.
-Then if $p$ is not symmetric, then certaintly it shall be symmetric on
-application of $L$. Formally, the following is a true statement
+Let p ∈ R[x₁, … , xₙ] be a multiviariate polynomial in n variables.
+Then if p is not symmetric, then certaintly it shall be symmetric on
+application of symmetrization. Formally, the following is a true statement
 -/
-theorem thm2 : ∀ q: MvPolynomial σ Int, MvPolynomial.IsSymmetric (symmetrization (p:=q)) := by sorry
-
-
--- Hi!
-
-
--- Could I possibly get a hint on a problem im having.
-
--- I'm trying to show that the bivariate polynomial p(x,y) = x² + y² is indeed symmetric.
--- So far, I've been trying to show it using externalty (code below) but am unsure how to handle
--- the coefficient function.
-
--- Another approach i thought of was to some brute force through all permutatoin maps
--- (2! in this case) and show equality in each case, but am unsure how I would go
--- about setting that up. Mainly, in this approach, im unsure of what I would actually
--- pass to the cases tactic -- one would have to turn Equiv.perm (fin 2) into an
--- inductive type somehow? Then from there it should be straight forward calc.
-
--- Any help/hint is appreciated. below is my info view and current code.
--- Thanks!
-
--- Infoview:
--- N : ℕ
--- π : Equiv.Perm (Fin 2)
--- ⊢ ∀ (m : Fin 2 →₀ ℕ), coeff m (X (π 0) ^ 2 + X (π 1) ^ 2) = coeff m (X 0 ^ 2 + X 1 ^ 2)
-
--- Code:
--- /- Define: p(x,y) = x² + y² -/
--- def basicSymmetric: MvPolynomial (Fin 2) Int := X 0 ^2 + X 1 ^2
+theorem thm2 : ∀ q: MvPolynomial σ Rat, MvPolynomial.IsSymmetric (symmetrization' (q:=q)) := by
+  intro h
+  simp [symmetrization']
+  simp[MvPolynomial.IsSymmetric]
