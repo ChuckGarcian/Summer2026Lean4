@@ -6,9 +6,16 @@ import Mathlib.Data.Fintype.Perm
 import Mathlib.Data.Finset.Image
 import Mathlib.Data.Real.Basic
 import Mathlib.Data.Nat.Factorial.Basic
+import Mathlib.Algebra.MvPolynomial.Rename
 import Mathlib.Tactic.Explode
 import Mathlib.Tactic.Widget.LibraryRewrite
-import Paperproof
+
+/-
+Descripition: Defines symmetrization on multivariate polynomials and then proves
+basic facts. See 'SelfMadeNotes/718.md' for my typped version of these proofs.
+Credit: Lean4 Zulip user and ChatGpt usage is marked as such when used
+-/
+
 
 
 noncomputable section
@@ -17,13 +24,11 @@ noncomputable section
 -- set_option trace.Meta.synthInstance true
 open MvPolynomial
 open BigOperators
-open Finset
+open Finset Fintype
 
 
 /- Define global variables -/
-variable (σ τ : Type*)
-variable [Fintype σ] [DecidableEq σ]
-variable [Fintype τ] [DecidableEq τ]
+variable {σ: Type*} [Fintype σ] [DecidableEq σ]
 variable (p : MvPolynomial σ Rat)
 
 
@@ -41,9 +46,9 @@ variable (N := p.vars.card) -- Number of variables in a multivarirate poly
 #check Nat.factorial N
 #check  (Finset.sum Finset.univ (fn p)) * MvPolynomial.C ((1.0:Real) / N.factorial)
 
+#check (Finset.sum Finset.univ (fn p)) * MvPolynomial.C ((1.0 : Real) / N.factorial)
 
-/------------------------------- Definitions -------------------------------/
-
+/- Definitions -/
 
 /-
 Let p: Rᴺ ↦ R be a polynomial, then $L(p)(x) = \frac{1}{N!}\sum_{\pi \in S_n}
@@ -65,7 +70,8 @@ def basicSymmetric: MvPolynomial (Fin 2) Rat := X 0 ^2 + X 1 ^2
 def NotSymmetricPoly: MvPolynomial (Fin 2) Rat := X 0 ^2 + X 1 + 1
 
 
-/------------------------------- Examples -------------------------------/
+/- Examples -/
+
 
 /- Example 1: Indeed, p(x,y) = x² + y² is symmetric (Chuck Solution)-/
 example : MvPolynomial.IsSymmetric basicSymmetric:= by
@@ -73,6 +79,7 @@ example : MvPolynomial.IsSymmetric basicSymmetric:= by
   simp [basicSymmetric]
   fin_cases π; simp; simp
   ring
+
 
 
 /- Example 1 sol by Albert Smith, Zulip:
@@ -124,8 +131,7 @@ example : ¬MvPolynomial.IsSymmetric NotSymmetricPoly := by sorry
 example : MvPolynomial.IsSymmetric (symmetrization (p := NotSymmetricPoly)) := by sorry
 
 
-/------------------------------- Theorems -------------------------------/
-
+/- Theorems -/
 
 /-
 Let p be a symmetric multivariate polynomial; then p is invariant
@@ -176,13 +182,146 @@ theorem thm1 : ∀ p : MvPolynomial σ Rat, MvPolynomial.IsSymmetric p → p = (
   rw [smul_smul ((n : Rat)⁻¹) (n : Rat) p]
   rw[hn]; simp
 
+variable (x: Equiv.Perm σ)
+variable (s : (Finset.univ : Finset (Equiv.Perm σ)))
+
+variable (s2 : Finset (Equiv.Perm σ))
+#check s2
+variable (e : Equiv.Perm (Equiv.Perm σ))
+#check e
+#check e.toFun
+#check  MvPolynomial.rename ((e.toFun))
+
+#check ∑ x: (Equiv.Perm σ), MvPolynomial.rename (e ∘ x) p
+#check ∑ x : Equiv.Perm σ, MvPolynomial.rename (x) p
+#check (MvPolynomial.rename _ p)
+
+
+#check Finset.sum (Finset.univ : Finset (Equiv.Perm σ)) (fun π => MvPolynomial.rename ⇑π p)
+#check fun π => MvPolynomial.rename π p
+#check (Finset.univ : Finset (Equiv.Perm σ))
+variable (j :)
+variable (i : Equiv.Perm (j))
+-- variable (j : Finset (Equiv.Perm σ))
+#check i
+#check Equiv.Perm.sum_comp (σ := e) (s := (Finset.univ : Finset (Equiv.Perm σ))) (f := (fun π => MvPolynomial.rename π p))
+
+#check Equiv.Perm.sum_comp (σ := ()) (s := (Finset.univ : Finset (Equiv.Perm σ))) (f := (fun π => MvPolynomial.rename π p))
+variable (e: Equiv.Perm σ)
+-- variable (l := ((e ∘ e) : (Equiv.Perm (Equiv.Perm σ))))
+
+variable (α : Type*)
+variable (s : Equiv.Perm (α))
+variable (h := s.toFun)
+
+def funch : α → α  := s.toFun
+
+def EquivLike.toEquiv {F} [EquivLike F α β] (f : F) : α ≃ β where
+  toFun := f
+  invFun := EquivLike.inv f
+  left_inv := EquivLike.left_inv f
+  right_inv := EquivLike.right_inv f
+
+#check (↑funch: Equiv.Perm (α))
+#check (↑h: Equiv.Perm (α))
+
+variable (v : α ≃  α)
+#check Equiv.trans v v
+
+def congrEqvToCongrEquiv' (p : α ≃  α) : ((α ≃ α ) ≃ (α ≃ α)) where
+  toFun := p ∘ p
+  invFun := p.invFun ∘ p.invFun
+  left_inv := p.left_inv
+  right_inv := p.right_inv
+
+
+
+def permToPermPerm' (p : Equiv.Perm σ) : (Equiv.Perm (Equiv.Perm (σ))) := by sorry--where
+  -- toFun := p.toFun ∘ p.toFun
+  -- invFun := p.invFun ∘ p.invFun
+  -- left_inv := p.left_inv
+  -- right_inv := p.right_inv
+
+
+def permToPermPerm (p : Equiv.Perm α) : (Equiv.Perm (Equiv.Perm (α))) where
+  toFun := f
+  invFun := EquivLike.inv f
+  left_inv := EquivLike.left_inv f
+  right_inv := EquivLike.right_inv f
+
+
+example (α : Type*) : Equiv.Perm (α) = Equiv.Perm (Equiv.Perm (α)) := by
+
+
+-- #check (e : Equiv.Perm σ) → (∃ τ : (Equiv.Perm (Equiv.Perm σ)))
+
+
+
+-- example : (e : Equiv.Perm σ) → ∃ τ : (Equiv.Perm (Equiv.Perm σ)) := by sorry
+
+#check (↑(e ∘ e) : (Equiv.Perm (Equiv.Perm σ)))
+
+
+#check Equiv.Perm.sum_comp (σ := i) (s := j) (f := (fun π => MvPolynomial.rename π p))
+#check Equiv.Perm.sum_comp (σ := ((e ∘ e) : (Equiv.Perm (Equiv.Perm σ)))) (s := (Finset.univ : Finset (Equiv.Perm σ))) (f := (fun π => MvPolynomial.rename π p))
+
+-- #check ∈
+-- #check Finset.univ (Equiv.Perm σ)
+variable (i : Equiv.Perm (Equiv.Perm σ))
+variable (j : Equiv.Perm (σ))
+
+#check j ∘ j
+
+
+#check e
+
+
+
+lemma lemma1 (e x: Equiv.Perm σ) (h₁ : Equiv.Perm (Equiv.Perm (σ))) : (rename (e ∘ x) p)  = (rename ⇑(h₁ x) p) := by
+
+/-
+The set of permutations on the set of permutations of set S is equal to the set
+of permutations of set S.
+-/
+-- exap (i : Equiv.Perm (Equiv.Perm σ)) [Coe (Equiv.Perm (Equiv.Perm σ)) (Equiv.Perm σ)] : Equiv.Perm σ := (i : Equiv.Perm σ)
+
+/- Lemma 1: For a fixed permutation map e ∈ Sₙ, the summation of permutations is
+equal to summation of permutation composed with e
+-/
+lemma helperPermSumEq
+  (e: Equiv.Perm σ) :
+  ∑ x: (Equiv.Perm σ), MvPolynomial.rename (e ∘ x) p =
+  ∑ x : Equiv.Perm σ, MvPolynomial.rename (x) p := by
+
+  have h₁ := (permToPermPerm' e)
+
+  /- Very very painful -/
+  conv =>
+    lhs
+    enter [2]
+    conv =>
+      intro x
+      rw[lemma1 p e x h₁]
+
+  apply Equiv.Perm.sum_comp (σ := h₁) (s := (Finset.univ : Finset (Equiv.Perm σ))) (f := (fun π => MvPolynomial.rename π p))
+  simp
+
+
+
+
+-- = ∑ π, (rename ⇑π) h
+
+-- lemma ∑ x : rename , rename
+
 
 /- Theorem 2: Any multivariate function can be made symmetric:
 Let p ∈ R[x₁, … , xₙ] be a multiviariate polynomial in n variables.
-Then if p is not symmetric, then certaintly it shall be symmetric on
+If p is not symmetric, then certaintly it shall be symmetric on
 application of symmetrization. Formally, the following is a true statement
 -/
-theorem thm2 : ∀ q: MvPolynomial σ Rat, MvPolynomial.IsSymmetric (symmetrization' (q:=q)) := by
+theorem thm2 : ∀ q: MvPolynomial σ Rat, MvPolynomial.IsSymmetric (symmetrization' (q := q)) := by
+  -- Expand definitions
   intro h
-  simp [symmetrization']
-  simp[MvPolynomial.IsSymmetric]
+  simp [symmetrization', MvPolynomial.IsSymmetric]
+  intro e
+  apply helperPermSumEq
