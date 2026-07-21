@@ -93,7 +93,6 @@ def eval₂ (p : MvPolynomial σ R) : S₁ :=
     -- p(1,0) = 0
     example : (MvPolynomial.eval ![1, 0]) circleEquation = 0 := by simp [circleEquation]
 
-
 ## Symmetric
 
 https://github.com/leanprover-community/mathlib4/blob/fd1d54bcac5caba4eff2ea3421c47d907333f515/Mathlib/RingTheory/MvPolynomial/Symmetric/Defs.lean#L104-L105    
