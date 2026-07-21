@@ -22,37 +22,6 @@ variable (p : MvPolynomial σ Rat)
 
 open Function
 
-theorem Injective.comp {g : Y → Z} {f : X → Y}
-    (Hg : Injective g) (Hf : Injective f) :
-  Injective (g ∘ f) := by
-  intro x₁ x₂ (h : (g ∘ f) x₁ = (g ∘ f) x₂)
-  have : f x₁ = f x₂ := Hg h
-  show x₁ = x₂
-  exact Hf this
-
-theorem Surjective.comp {g : Y → Z} {f : X → Y}
-    (hg : Surjective g) (hf : Surjective f) :
-  Surjective (g ∘ f) := by
-  intro z
-  cases hg z with
-  | intro y hy =>
-    cases hf y with
-    | intro x hx =>
-      show ∃ a, (g ∘ f) a = z
-      rw [← hy, ← hx]
-      show ∃ a, (g ∘ f) a = g (f x)
-      exact ⟨x, rfl⟩
-
-theorem Bijective.comp {g : Y → Z} {f : X → Y}
-    (hg : Bijective g) (hf : Bijective f) :
-  Bijective (g ∘ f) :=
-have gInj : Injective g := hg.left
-have gSurj : Surjective g := hg.right
-have fInj : Injective f := hf.left
-have fSurj : Surjective f := hf.right
-And.intro (Injective.comp gInj fInj)
-  (Surjective.comp gSurj fSurj)
-
 variable (e x : σ ≃ σ)
 variable (f := (Equiv.bijective e))
 variable (g := (Equiv.bijective x))
@@ -67,7 +36,7 @@ variable (fcmpg := Function.Bijective.comp f g) -- Proof that composition is als
 #check Equiv.bijective e
 #check (Equiv.ofBijective e e.bijective)
 #check Function.Bijective.comp
-#check Equiv.
+
 
 def permperm (e : σ ≃ σ) : (σ ≃ σ) ≃ (σ ≃ σ) where
       -- L: σ ≃ σ → σ ≃ σσ ≃ σ
@@ -98,8 +67,11 @@ variable {σ: Type*} [Fintype σ] [DecidableEq σ]
 variable {τ: Type*} [Fintype τ] [DecidableEq τ]
 variable {α: Type*} [Fintype α] [DecidableEq α]
 variable (p : MvPolynomial σ Rat)
+universe u
+universe v
 
 open Function
+noncomputable section
 
 variable (e: σ ≃ τ)
 variable (x: τ ≃ α)
@@ -119,3 +91,37 @@ variable (fcmpg := Function.Bijective.comp f g) -- Proof that composition is als
 #check Function.Bijective.comp
 
 
+lemma getEquivFromComp (f : σ ≃ τ) (g : τ ≃ σ) : Bijective (g ∘ f) := by
+
+  /- Obtain proofs that f and g are indeed bijective -/
+  have Hbjf := Equiv.bijective f
+  have Hbjg := Equiv.bijective g
+
+  /- Now show their composition is necessarly bijective as well -/
+  have fcmpg := Function.Bijective.comp Hbjg Hbjf
+
+  /- Hence, the function coresponding to the composition of f and g is also an equivelence
+  since it is bijective -/
+  exact fcmpg
+
+
+variable (e: σ ≃ τ)
+variable (x: τ ≃ σ)
+
+#check (getEquivFromComp (f := e) (g := x))
+
+def permperm' (e: σ ≃ σ) : (σ ≃ σ) ≃ (σ ≃ σ) where
+    toFun := fun (x: σ ≃ σ) ↦
+      Equiv.ofBijective (e ∘ x)
+      (hf := (getEquivFromComp (g := e) (f := x)))
+    invFun := fun x ↦
+      Equiv.ofBijective (e.symm ∘ x)
+      (hf := getEquivFromComp (g := e.symm) (f := x))
+    left_inv := by
+      intro x
+      ext a
+      simp [Function.comp_def]
+    right_inv := by
+      intro x
+      ext a
+      simp [Function.comp_def]
