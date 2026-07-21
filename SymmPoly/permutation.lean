@@ -1,3 +1,8 @@
+/-
+Descripition: Defines symmetrization on multivariate polynomials and then proves
+basic facts. See 'SelfMadeNotes/718.md' for my typped version of these proofs.
+Credit: Lean4 Zulip user and ChatGpt usage is marked as such when used
+-/
 import Mathlib.Algebra.MvPolynomial.Basic
 import Mathlib.RingTheory.MvPolynomial.Basic
 import Mathlib.RingTheory.MvPolynomial.Symmetric.Defs
@@ -9,13 +14,9 @@ import Mathlib.Data.Nat.Factorial.Basic
 import Mathlib.Algebra.MvPolynomial.Rename
 import Mathlib.Tactic.Explode
 import Mathlib.Tactic.Widget.LibraryRewrite
-
-/-
-Descripition: Defines symmetrization on multivariate polynomials and then proves
-basic facts. See 'SelfMadeNotes/718.md' for my typped version of these proofs.
-Credit: Lean4 Zulip user and ChatGpt usage is marked as such when used
--/
-
+import Mathlib.Logic.Function.Basic
+import Mathlib.Logic.Function.Defs
+open Function
 
 
 noncomputable section
@@ -79,7 +80,6 @@ example : MvPolynomial.IsSymmetric basicSymmetric:= by
   simp [basicSymmetric]
   fin_cases π; simp; simp
   ring
-
 
 
 /- Example 1 sol by Albert Smith, Zulip:
@@ -182,136 +182,92 @@ theorem thm1 : ∀ p : MvPolynomial σ Rat, MvPolynomial.IsSymmetric p → p = (
   rw [smul_smul ((n : Rat)⁻¹) (n : Rat) p]
   rw[hn]; simp
 
-variable (x: Equiv.Perm σ)
-variable (s : (Finset.univ : Finset (Equiv.Perm σ)))
+#check EquivLike.coe_symm_comp_self
 
-variable (s2 : Finset (Equiv.Perm σ))
-#check s2
-variable (e : Equiv.Perm (Equiv.Perm σ))
-#check e
-#check e.toFun
-#check  MvPolynomial.rename ((e.toFun))
+/- Lemma2: The composition of equivelences, f and g, is a bijective function
+from the domain of f to the codomain of g -/
+lemma getEquivFromComp (f : σ ≃ τ) (g : τ ≃ σ) : Bijective (g ∘ f) := by
 
-#check ∑ x: (Equiv.Perm σ), MvPolynomial.rename (e ∘ x) p
-#check ∑ x : Equiv.Perm σ, MvPolynomial.rename (x) p
-#check (MvPolynomial.rename _ p)
+  /- Obtain proofs that f and g are indeed bijective -/
+  have Hbjf := Equiv.bijective f
+  have Hbjg := Equiv.bijective g
 
+  /- Now show their composition is necessarly bijective as well -/
+  have fcmpg := Function.Bijective.comp Hbjg Hbjf
 
-#check Finset.sum (Finset.univ : Finset (Equiv.Perm σ)) (fun π => MvPolynomial.rename ⇑π p)
-#check fun π => MvPolynomial.rename π p
-#check (Finset.univ : Finset (Equiv.Perm σ))
-variable (j :)
-variable (i : Equiv.Perm (j))
--- variable (j : Finset (Equiv.Perm σ))
-#check i
-#check Equiv.Perm.sum_comp (σ := e) (s := (Finset.univ : Finset (Equiv.Perm σ))) (f := (fun π => MvPolynomial.rename π p))
+  /- Hence, the function coresponding to the composition of f and g is also an equivelence
+  since it is bijective -/
+  exact fcmpg
 
-#check Equiv.Perm.sum_comp (σ := ()) (s := (Finset.univ : Finset (Equiv.Perm σ))) (f := (fun π => MvPolynomial.rename π p))
-variable (e: Equiv.Perm σ)
--- variable (l := ((e ∘ e) : (Equiv.Perm (Equiv.Perm σ))))
-
-variable (α : Type*)
-variable (s : Equiv.Perm (α))
-variable (h := s.toFun)
-
-def funch : α → α  := s.toFun
-
-def EquivLike.toEquiv {F} [EquivLike F α β] (f : F) : α ≃ β where
-  toFun := f
-  invFun := EquivLike.inv f
-  left_inv := EquivLike.left_inv f
-  right_inv := EquivLike.right_inv f
-
-#check (↑funch: Equiv.Perm (α))
-#check (↑h: Equiv.Perm (α))
-
-variable (v : α ≃  α)
-#check Equiv.trans v v
-
-def congrEqvToCongrEquiv' (p : α ≃  α) : ((α ≃ α ) ≃ (α ≃ α)) where
-  toFun := p ∘ p
-  invFun := p.invFun ∘ p.invFun
-  left_inv := p.left_inv
-  right_inv := p.right_inv
-
-
-
-def permToPermPerm' (p : Equiv.Perm σ) : (Equiv.Perm (Equiv.Perm (σ))) := by sorry--where
-  -- toFun := p.toFun ∘ p.toFun
-  -- invFun := p.invFun ∘ p.invFun
-  -- left_inv := p.left_inv
-  -- right_inv := p.right_inv
-
-
-def permToPermPerm (p : Equiv.Perm α) : (Equiv.Perm (Equiv.Perm (α))) where
-  toFun := f
-  invFun := EquivLike.inv f
-  left_inv := EquivLike.left_inv f
-  right_inv := EquivLike.right_inv f
-
-
-example (α : Type*) : Equiv.Perm (α) = Equiv.Perm (Equiv.Perm (α)) := by
-
-
--- #check (e : Equiv.Perm σ) → (∃ τ : (Equiv.Perm (Equiv.Perm σ)))
-
-
-
--- example : (e : Equiv.Perm σ) → ∃ τ : (Equiv.Perm (Equiv.Perm σ)) := by sorry
-
-#check (↑(e ∘ e) : (Equiv.Perm (Equiv.Perm σ)))
-
-
-#check Equiv.Perm.sum_comp (σ := i) (s := j) (f := (fun π => MvPolynomial.rename π p))
-#check Equiv.Perm.sum_comp (σ := ((e ∘ e) : (Equiv.Perm (Equiv.Perm σ)))) (s := (Finset.univ : Finset (Equiv.Perm σ))) (f := (fun π => MvPolynomial.rename π p))
-
--- #check ∈
--- #check Finset.univ (Equiv.Perm σ)
-variable (i : Equiv.Perm (Equiv.Perm σ))
-variable (j : Equiv.Perm (σ))
-
-#check j ∘ j
-
-
-#check e
-
-
-
-lemma lemma1 (e x: Equiv.Perm σ) (h₁ : Equiv.Perm (Equiv.Perm (σ))) : (rename (e ∘ x) p)  = (rename ⇑(h₁ x) p) := by
 
 /-
-The set of permutations on the set of permutations of set S is equal to the set
-of permutations of set S.
+Given A permutation map, say π, on some set, say S, we can create a new permutation
+map that permutes the set of permutations on S by composing each one with π
 -/
--- exap (i : Equiv.Perm (Equiv.Perm σ)) [Coe (Equiv.Perm (Equiv.Perm σ)) (Equiv.Perm σ)] : Equiv.Perm σ := (i : Equiv.Perm σ)
-
-/- Lemma 1: For a fixed permutation map e ∈ Sₙ, the summation of permutations is
-equal to summation of permutation composed with e
--/
-lemma helperPermSumEq
-  (e: Equiv.Perm σ) :
-  ∑ x: (Equiv.Perm σ), MvPolynomial.rename (e ∘ x) p =
-  ∑ x : Equiv.Perm σ, MvPolynomial.rename (x) p := by
-
-  have h₁ := (permToPermPerm' e)
-
-  /- Very very painful -/
-  conv =>
-    lhs
-    enter [2]
-    conv =>
+def permperm' (e : σ ≃ σ) : (σ ≃ σ) ≃ (σ ≃ σ) where
+    toFun := fun (x: σ ≃ σ) ↦
+      Equiv.ofBijective (e ∘ x)
+      (hf := (getEquivFromComp (g := e) (f := x)))
+    invFun := fun x ↦
+      Equiv.ofBijective (e.symm ∘ x)
+      (hf := getEquivFromComp (g := e.symm) (f := x))
+    left_inv := by
       intro x
-      rw[lemma1 p e x h₁]
+      simp only [Equiv.coe_ofBijective]
 
-  apply Equiv.Perm.sum_comp (σ := h₁) (s := (Finset.univ : Finset (Equiv.Perm σ))) (f := (fun π => MvPolynomial.rename π p))
-  simp
+      conv =>
+        lhs
+        conv =>
+        enter [1 ]
+        tactic =>
+          rw [← Function.comp_assoc]
 
+      conv =>
+        lhs
+        conv=>
+          enter [1]
+          enter[1]
+          tactic =>
+            have h1 : ⇑e.symm ∘ ⇑ e = id := by apply EquivLike.coe_symm_comp_self e
+            rw [h1]
+      simp
 
+    right_inv := by
+      intro x
+      simp only [Equiv.coe_ofBijective]
+      conv =>
+        lhs
+        conv =>
+        enter [1 ]
+        tactic =>
+          rw [← Function.comp_assoc]
 
+      conv =>
+        lhs
+        conv=>
+          enter [1]
+          enter[1]
+          tactic =>
+            have h1 : ⇑ e ∘ ⇑e.symm = id := by apply EquivLike.coe_symm_comp_self e.symm
+            rw [h1]
+      simp
 
--- = ∑ π, (rename ⇑π) h
+/- Lemma: Rewrites a permutation composition into a function h₁ that maps
+from x to it's composition e ∘ x
+-/
+lemma lemma1  (e : σ ≃ σ) :
+    ∃ h₁ : ((σ ≃ σ) ≃ (σ ≃ σ)),
+      ∀ x : Equiv.Perm σ,
+        rename (e ∘ x) p = rename ⇑(h₁ x) p := by
 
--- lemma ∑ x : rename , rename
+    apply Exists.intro
+
+    case w =>
+      exact permperm' e
+
+    case h =>
+      intro x
+      simp [permperm']
 
 
 /- Theorem 2: Any multivariate function can be made symmetric:
@@ -321,7 +277,20 @@ application of symmetrization. Formally, the following is a true statement
 -/
 theorem thm2 : ∀ q: MvPolynomial σ Rat, MvPolynomial.IsSymmetric (symmetrization' (q := q)) := by
   -- Expand definitions
-  intro h
+  intro q
   simp [symmetrization', MvPolynomial.IsSymmetric]
   intro e
-  apply helperPermSumEq
+
+  /- Very very painful: Rewrite goal into a form that the 'sum_com' lemma likes -/
+  obtain ⟨h3, hp⟩ := lemma1 (p := q) e
+
+  conv =>
+    lhs
+    enter [2]
+    conv =>
+      intro x
+      rw[hp x]
+
+  /-Basically the core part of this theorem -/
+  apply Equiv.Perm.sum_comp (σ := h3) (s := (Finset.univ : Finset (Equiv.Perm σ))) (f := (fun π => MvPolynomial.rename π q))
+  simp
