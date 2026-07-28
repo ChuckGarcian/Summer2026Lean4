@@ -13,6 +13,7 @@ import Mathlib.Logic.Function.Basic
 import Mathlib.Logic.Function.Defs
 import Init.Data.BitVec
 import Init.Prelude
+import Mathlib.Algebra.Ring.BooleanRing
 import Paperproof
 
 open Function MvPolynomial
@@ -30,34 +31,8 @@ variable {σ: Type*} [Fintype σ] [DecidableEq σ]
 variable (p : MvPolynomial σ Rat)
 
 
--- class exactParity ()
-#check {q : ℝ // q = 0 ∨ q = 1}
-variable (t : Fin (2^n) → {q : ℝ // q = 0 ∨ q = 1})
-#check Or.by_cases
-
-/- Canononical Definition of Parityₙ -/
-def parityCanon (n : Nat) (m : Fin (2^n)) : ℝ := Nat.mod m 2
--- def parityCanon (m : Fin (2^n)) : R where
---   val := Nat.mod m 2
---   property := by
---     simp
---     by_cases h : m.val % 2 = 0
---     case pos => exact Or.symm (Or.inr h)
---     case neg =>
---       simp at h
---       exact Or.symm (Or.inl h)
-
-#check parityCanon 2 2
-
-/- Example: Indeed the canoncical representation of Parity₂ evaluated at 2 is 0 -/
-example : parityCanon 2 2 = 0 := by
-  simp [parityCanon]
-
-
 /- p(x) = x₁ + x₂ - 2x₁x₂ -/
 def parity2bitPoly : MvPolynomial (Fin 2) ℝ := X 0 + X 1 - 2 * X 1 * X 2
-
-variable (f := ![(1 : ℝ), (0 : ℝ)])
 
 /- Example: Check the bit string 01 has odd parity -/
 example : MvPolynomial.eval ![0, 1] parity2bitPoly = 1 := by
@@ -72,3 +47,25 @@ example : MvPolynomial.eval ![1, 1] parity2bitPoly = 0 := by
   simp [parity2bitPoly]
   ring
 
+
+def valuation (m : Fin n) : (Bool) := 0
+
+variable {Z₂ : Type*} [BooleanRing Z₂]
+
+/- Canoncical parity boolean function defined using mod 2 ring (ring on
+integers 0 and 1 with binary operations XOR and 'and')
+-/
+def parityₙ (n : Nat): MvPolynomial (Fin n) Z₂ := ∑ i : Fin n, (X i)
+
+def parity₂ : MvPolynomial (Fin 2) Z₂ := parityₙ (n := 2)
+
+/-
+Example: Indeed 2 bit parity works.
+-/
+example : MvPolynomial.eval (R := Bool) ![0, 0] parity₂ = 0 := by
+  simp [parity₂]
+
+
+structure PolyApprox (p : MvPolynomial (Fin n) ℝ) (f : MvPolynomial (Fin n) Bool) where
+  -- 1. Indstinguishability on the restricted domain
+    indst: ∀ x : (Fin n) → BitVec 1, p x - f x = 0
