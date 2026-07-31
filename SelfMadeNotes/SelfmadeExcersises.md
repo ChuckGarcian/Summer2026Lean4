@@ -119,8 +119,4 @@ Let $(x_1, \ldots, x_m)\in [0, n]^m$
 
 This is $AND$ composition OR.
 
-\question
 
-
-
-\ansewer

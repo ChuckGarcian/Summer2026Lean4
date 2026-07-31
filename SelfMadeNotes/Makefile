@@ -1,4 +1,5 @@
-SRC := selfStudyGroupTheory
+# selfStudyGroupTheory
+SRC := SelfmadeExcersises
 PDF_ENGINE := xelatex
 HEADER := build/header.tex
 FILTER := build/filter.lua

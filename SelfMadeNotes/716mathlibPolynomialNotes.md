@@ -23,14 +23,14 @@ We can define a unique homomorphism $T: R[X] \rightarrow R^\prime$ which agrees 
 Lean defines exactly such a map via the $\text{eval}_2$ definition:
 
 ```lean4
-irreducible_def eval₂ (p : R[X]) : S :=
+irreducible_def eval2 (p : R[X]) : S :=
   p.sum fun e a => f a * x ^ e
 ```
 
 Where sum is defined by
 
 ```lean4
-p.sum f = ∑ n ∈ p.support, f n (p.coeff n)
+p.sum f = $\sum n \in$ p.support, f n (p.coeff n)
 ```
 
 We will therefore notate the eval_2 function with the following
@@ -51,7 +51,7 @@ Observe that $T$ is semantically equivalent with a *substitution* homomorphic ma
 
 ```lean4
 def eval (x : R) (p : R[X]) : R :=
-  eval₂ (RingHom.id _) x p
+  eval2 (RingHom.id _) x p
 ```
 
 Let $\alpha\in R$, $p(x) \in R[X]$ and let $I$ be the identity ring homomorphism. Then we can notationally represent the eval map as
@@ -80,7 +80,7 @@ Indeed, the right hand side is in $R$ which is what we expect from an evaluation
 
 ```lean4
 def comp (p q : R[X]) : R[X] :=
-  p.eval₂ C q
+  p.eval2p C q
 ```
 
 Notationally we can represent with
