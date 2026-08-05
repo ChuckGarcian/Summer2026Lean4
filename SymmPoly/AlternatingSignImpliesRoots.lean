@@ -2,6 +2,7 @@ import Mathlib.Topology.Defs.Basic
 import Mathlib.Topology.UniformSpace.Real
 import Mathlib.Topology.Order.IntermediateValue
 import Mathlib.Topology.Continuous
+import Mathlib.Tactic.Cases
 import Mathlib.Data.Finset.Range
 import Mathlib.Data.Real.Basic
 import Mathlib.Data.Finset.Sort
@@ -12,8 +13,6 @@ open Set Finset
 noncomputable section
 
 open Set
-
-def isRoot (f : ℝ → ℝ) (x : ℝ) : Prop := f x = 0
 
 #check intermediate_value_univ₂
 #check intermediate_value_univ₂ hf hg
@@ -90,15 +89,106 @@ theorem thm2
     -- Thoerem one can prove the rest
     apply thm1; repeat' assumption
 
-#eval Finset.range 2
+#eval Finset.range 1
 
 section
-variable (f : ℝ → ℝ) (hf : Continuous f)
-#check ∀ x ∈ Finset.range 2, (Even x ∧ f x ≤ -1/6) ∨ (Odd x ∧ f x ≥ 1/6)
+  variable (f : ℝ → ℝ) (hf : Continuous f)
+
+  #check ∀ x : Fin 3, (Even x ∧ f x.val ≤ -1/6) ∨ (Odd x.val ∧ f x ≥ 1/6)
 end section
+
+
+def isRoot (f : ℝ → ℝ) (x : ℝ) : Prop := f x = 0
+
+
+  -- apply Exists.intro
+  -- case w =>
+--
+  -- case h =>
+
+
+
+lemma base1
+  (f : ℝ → ℝ) (hf : Continuous f)
+  (h2 :  ∀ x ∈ Finset.range 1, (Even x ∧ f x ≤ -1/6) ∨ (Odd x ∧ f x ≥ 1/6)) :
+  ∃ s : Finset ℝ, s.card = 1 ∧ ∀ x ∈ s, isRoot f x := by sorry
 
 example
   (f : ℝ → ℝ) (hf : Continuous f)
   (h2 :  ∀ x ∈ Finset.range 2, (Even x ∧ f x ≤ -1/6) ∨ (Odd x ∧ f x ≥ 1/6)) :
   ∃ s : Finset ℝ, s.card = 2 ∧ ∀ x ∈ s, isRoot f x := by
-  
+
+Set.forall_mem_insert
+
+-- theorem {P : α → Prop} {a : α} {s : Set α} : (∀ x ∈ insert a s, P x) ↔ P a ∧ ∀ x ∈ s, P x
+example (k N : Nat) (P : Nat → Prop) : (∀ x ∈ (Finset.range N), P x) ↔ P k ∧ (∀ x ∈ (Finset.range N), P x) := by
+-- lemma lemma0 : ∀ x ∈ Finset.range (k + 1), Even x ∧ f ↑x ≤ -1 / 6 ∨ Odd x ∧ f ↑x ≥ 1 / 6 := by sorry
+
+variable (n : Nat)
+-- #check Finset.univ (Finset (Fin 3))
+#check Finset.range (nP)
+
+def P (f : ℝ → ℝ) (x : Nat) : Prop :=
+  (Even x ∧ f x ≤ -(1 / 6 : ℝ)) ∨
+  (Odd x ∧ f x ≥ (1 / 6 : ℝ))
+
+lemma base0
+  (f : ℝ → ℝ) (hf : Continuous f)
+  :
+  ∀ x : Fin (0), P f x → ∃ s : Finset ℝ, s.card = 0 ∧ ∀ x ∈ s, isRoot f x := by sorry
+
+  --
+
+lemma lemma0
+  (N : ℕ)
+  {f : ℝ → ℝ}
+  (hf : Continuous f) :
+  ∀ x : Fin (N + 1), P f x ↔ P f (N + 1) ∧ ∀ x : Fin (N), P f x := by sorry
+
+
+variable (N : Nat)
+variable  (f : ℝ → ℝ) (hf : Continuous f)
+
+#check base0
+#check base0 f
+#check base0 f hf
+#check (lemma0 N hf)
+
+theorem helper1 (α : Type) (P : α → Prop) (B : Prop) (h : ∀ x, P x → B) :
+  (∀ x, P x) → B := by sorry
+
+  -- (expose_names; exact fun a ↦ Nonempty.elim inst fun a_1 ↦ h a_1 (a a_1))
+
+example
+
+  -- (f : ℝ → ℝ) (hf : Continuous f)
+  :
+  ∀ x : Fin N, P f x → ∃ s : Finset ℝ, s.card = N ∧ ∀ x ∈ s, isRoot f x := by
+  intro x hp
+  induction' N with k hk
+  -- TODO: This will need to be made strong induction since we need the both cases of N = 0 AND N = 1
+  case zero =>
+    exact base0 f hf x hp
+
+  case succ =>
+
+    -- Proof
+    have hfpx := (lemma0 k hf x).mp hp
+    --  hfpx : P f (k + 1) ∧ ∀ (x : Fin k), P f ↑x
+
+    have pL := hfpx.left
+    have pR := hfpx.right
+
+    -- Get witness set for card k. Now it remains to be shown the singlenton set exists
+    apply helper1 at hk
+
+    -- TODO: Once we get
+    have s := hk pR
+
+
+
+
+
+    -- apply lemma0
+
+    rw [Finset.forall_mem_insert (by decide) ] at h2
