@@ -7,6 +7,7 @@ import Mathlib.Data.Finset.Range
 import Mathlib.Data.Real.Basic
 import Mathlib.Data.Finset.Sort
 import Mathlib.Algebra.Group.Even
+import Mathlib.Tactic.Basic -- brings in rcases/and_destruct
 
 open Set Finset
 
@@ -95,24 +96,40 @@ section
   #check ∀ x : Fin 3, (Even x ∧ f x.val ≤ -1/6) ∨ (Odd x.val ∧ f x ≥ 1/6)
 end section
 
+
+def P (f : ℝ → ℝ) (x : Nat) : Prop :=
+  (Even x ∧ f x ≤ -(1 / 6 : ℝ)) ∨
+  (Odd x ∧ f x ≥ (1 / 6 : ℝ))
+
 def isRoot (f : ℝ → ℝ) (x : ℝ) : Prop := f x = 0
 
-  -- apply Exists.intro
-  -- case w =>
-  --
-  -- case h =>
+/-
 
-lemma base1
+-/
+lemma base0
   (f : ℝ → ℝ) (hf : Continuous f)
-  (h2 : ∀ x ∈ Finset.range 1, (Even x ∧ f x ≤ -1/6) ∨ (Odd x ∧ f x ≥ 1/6)) :
-  ∃ s : Finset ℝ, s.card = 1 ∧ ∀ x ∈ s, isRoot f x := by sorry
+  :
+  (∀ x : Fin (0), P f x) → ∃ s : Finset ℝ, s.card = 0 ∧ ∀ x ∈ s, isRoot f x := by
+    intro h
 
-example
-  (f : ℝ → ℝ) (hf : Continuous f)
-  (h2 : ∀ x ∈ Finset.range 2, (Even x ∧ f x ≤ -1/6) ∨ (Odd x ∧ f x ≥ 1/6)) :
-  ∃ s : Finset ℝ, s.card = 2 ∧ ∀ x ∈ s, isRoot f x := by
+    apply Exists.intro
+    -- Witness: ∅
+    case w =>
+      exact Finset.empty
 
-Set.forall_mem_insert
+    -- Witness Proof
+    case h =>
+      apply And.intro
+
+      -- Prove card(∅) = 0
+      case left =>
+          trivial
+
+      case right =>
+        -- Quanitifer over Emptyset is vacuously true
+        have vacuousTrue := Finset.forall_mem_empty_iff (isRoot f)
+        apply vacuousTrue.mpr; simp
+
 
 -- theorem {P : α → Prop} {a : α} {s : Set α} : (∀ x ∈ insert a s, P x) ↔ P a ∧ ∀ x ∈ s, P x
 example (k N : Nat) (P : Nat → Prop) : (∀ x ∈ (Finset.range N), P x) ↔ P k ∧ (∀ x ∈ (Finset.range N), P x) := by
@@ -122,22 +139,14 @@ variable (n : Nat)
 -- #check Finset.univ (Finset (Fin 3))
 #check Finset.range (nP)
 
-def P (f : ℝ → ℝ) (x : Nat) : Prop :=
-  (Even x ∧ f x ≤ -(1 / 6 : ℝ)) ∨
-  (Odd x ∧ f x ≥ (1 / 6 : ℝ))
-
-lemma base0
-  (f : ℝ → ℝ) (hf : Continuous f)
-  :
-  ∀ x : Fin (0), P f x → ∃ s : Finset ℝ, s.card = 0 ∧ ∀ x ∈ s, isRoot f x := by sorry
 
   --
-
+/- Quantifer Split -/
 lemma lemma0
   (N : ℕ)
   {f : ℝ → ℝ}
   (hf : Continuous f) :
-  ∀ x : Fin (N + 1), P f x ↔ P f (N + 1) ∧ ∀ x : Fin (N), P f x := by sorry
+  (∀ x : Fin (N + 1), P f x) ↔ P f (N + 1) ∧ ∀ x : Fin (N), P f x := by sorry
 
 variable (N : Nat)
 variable (f : ℝ → ℝ) (hf : Continuous f)
@@ -147,38 +156,116 @@ variable (f : ℝ → ℝ) (hf : Continuous f)
 #check base0 f hf
 #check (lemma0 N hf)
 
-theorem helper1 (α : Type) (P : α → Prop) (B : Prop) (h : ∀ x, P x → B) :
-  (∀ x, P x) → B := by sorry
+-- theorem helper1 (α : Type) (P : α → Prop) (B : Prop) (h : ∀ x, P x → B) :
+--   (∀ x, P x) → B := by sorry
 
   -- (expose_names; exact fun a ↦ Nonempty.elim inst fun a_1 ↦ h a_1 (a a_1))
+-- example (k : Nat) : (Finset ℝ, s.card = k ∧ ∀ x ∈ s, isRoot f x) ∧ (P f (k + 1)) →
+#check Finset.range 3
+#check Finset (Fin 3)
 
-example
+#check Finset.map Fin.castSuccEmb (Finset.univ: Finset (Fin N)) ∪ {Fin.last N}
+#check Finset.map Fin.castSuccEmb (Finset.univ : Finset (Fin N)) ∪ {Fin.last N}
 
+#check Fin.last N
+#check Fin.last N
+#check Fin.castSuccEmb N
+
+
+
+variable (S : Finset ℝ)
+
+def Q (S : Finset ℝ) (n : Nat) (f : ℝ → ℝ) : Prop := S.card = n ∧ ∀ x ∈ S, isRoot f x
+
+#check Finset.insert_eq
+variable (α : Type) (p q : α → Prop)
+variable (α : Type) (p q : α → Prop)
+
+
+example (h : ∃ x, p x ∧ q x) : ∃ x, q x ∧ p x := by
+  apply Exists.elim h
+    (fun w =>
+     fun hw : p w ∧ q w =>
+     show ∃ x, q x ∧ p x from ⟨w, hw.right, hw.left⟩)
+
+
+theorem thmMain
+  (n : Nat)
+  (hn : 1 ≤ n)
   -- (f : ℝ → ℝ) (hf : Continuous f)
   :
-  ∀ x : Fin N, P f x → ∃ s : Finset ℝ, s.card = N ∧ ∀ x ∈ s, isRoot f x := by
-  intro x hp
-  induction' N with k hk
-  -- TODO: This will need to be made strong induction since we need both cases of N = 0 AND N = 1
-  case zero =>
-    exact base0 f hf x hp
+  (∀ x : Fin (n + 1), P f x) → ∃ s : Finset ℝ, Q S n f := by
 
-  case succ =>
+  intro x
+  induction n, hn using Nat.le_induction with
+  -- Base Case: n = 1
+  | base =>
 
-    -- Proof
-    have hfpx := (lemma0 k hf x).mp hp
+    rw [Q]
+    rw [show (1 + 1 = 2) by norm_num] at x
+
+    -- Supply witness and supporting proof
+    apply Exists.intro
+    case w =>
+
+      unfold P at x
+      rw [Fin.forall_fin_two] at x
+      simp at x
+
+      nth_rw 1 [inv_eq_one_div 6] at x
+      rw [neg_div' 6 1] at x
+      rw [inv_eq_one_div 6] at x
+
+      have f0le6 : f 0 ≤ -1/6 := x.left
+      have f1ge6 : 1/6 ≤ f 1 := x.right
+
+      -- Obtain witness root and proof of witness
+      have whp := thm2 0 1 f hf f0le6 f1ge6
+      classical
+      exact {Exists.choose whp}
+
+    case h =>
+      apply And.intro
+
+        -- Prove card(∅) = 0
+      case left =>
+            trivial
+
+      case right =>
+          -- Quanitifer over Emptyset is vacuously true
+          have vacuousTrue := Finset.forall_mem_empty_iff (isRoot f)
+          apply vacuousTrue.mpr; simp
+      -- have s := base1 f hf x
+
+  | succ =>
+
+
+    -- Obtain set Sₖ₋₁ from I.H.
+    have ihsk := (lemma0 k hf).mp x
+    have hfpx := (lemma0 k hf).mp x
+
+
     --  hfpx : P f (k + 1) ∧ ∀ (x : Fin k), P f ↑x
 
     have pL := hfpx.left
     have pR := hfpx.right
+    have h : P f k := by sorry
+
 
     -- Get the witness set for card k. Now it remains to be shown that the singleton set exists
-    apply helper1 at hk
 
     -- TODO: Once we get
     have s := hk pR
+
+
 
     -- apply lemma0
 
     rw [Finset.forall_mem_insert (by decide)] at h2
     sorry
+
+
+example (p q : Nat → Prop) : (∃ x, p x) → ∃ x, p x ∨ q x := by
+  intro h
+  cases h with
+  | intro x px => exists x; apply Or.inl; exact px
