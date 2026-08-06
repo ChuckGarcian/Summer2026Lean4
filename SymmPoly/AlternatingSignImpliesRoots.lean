@@ -116,12 +116,14 @@ lemma lemma1
   -- ∃ x : ℝ, isRoot f x ∧ x ∈ (Set.Icc (n : ℝ ) (n + 1 : ℝ)):= by sorry
 
 lemma lemma2
-  (f : ℝ → ℝ)
-  (hf : Continuous f)
+  {f : ℝ → ℝ}
+  {hf : Continuous f}
   (n : Nat)
   (h₁ : ∃ S₁ : Set ℝ , Q S₁ n f)
   (h₂ : ∃ S₂ : Set ℝ , Q S₂ 1 f) :
-  ∃ T : Set ℝ, Q T (n + 1) f := by sorry
+  ∃ T : Set ℝ, Q T (n + 1) f := by
+    sorry
+
 
 /-
 Theorem: If every adjecent pair of integers in the set {0, …, n}, when n ≥ 1,
@@ -141,27 +143,28 @@ theorem thmMain
   :
   (∀ x : Fin (n + 1), P f x) → ∃ S : Set ℝ, Q S n f := by
 
-  intro h
-  simp [Q]
+  -- intro h
+  -- simp [Q]
 
   induction n, hn using Nat.le_induction with
   -- Base Case: n = 1
   | base =>
-    rw [show (1 + 1 = 2) by norm_num] at h
+    intro hpfx
+    rw [show (1 + 1 = 2) by norm_num] at hpfx
 
     -- Simplify h to: f(0) ≤ -6⁻¹ ∧ 6⁻¹ ≤ f(1)
-    unfold P at h
-    rw [Fin.forall_fin_two] at h
-    simp at h
+    unfold P at hpfx
+    rw [Fin.forall_fin_two] at hpfx
+    simp at hpfx
 
     -- subst: 6⁻¹ = ⅙
-    nth_rw 1 [inv_eq_one_div 6] at h
-    rw [neg_div' 6 1] at h
-    rw [inv_eq_one_div 6] at h
+    nth_rw 1 [inv_eq_one_div 6] at hpfx
+    rw [neg_div' 6 1] at hpfx
+    rw [inv_eq_one_div 6] at hpfx
 
     -- Finaly, extract lhs and rhs bounds
-    have f0le6 : f 0 ≤ -1/6 := h.left
-    have f1ge6 : 1/6 ≤ f 1 := h.right
+    have f0le6 : f 0 ≤ -1/6 := hpfx.left
+    have f1ge6 : 1/6 ≤ f 1 := hpfx.right
 
     -- Using IVT, get roots, then put it in a set
     classical
@@ -186,23 +189,28 @@ theorem thmMain
         -- simp; exact Exists.choose_spec (rtw)
 
   | succ k hk ih =>
-    rw [show (k + 1 + 1 = k + 2) by norm_num] at h
+    -- Assume f alternatives sign with respect to parity of x ∈ [k+1]
+    show (∀ x : Fin (k + 2), P f ↑x) → ∃ S, Q S (k + 1) f
+    intro hf_alt_0_kplus1
 
-    -- Obtain set Sₖ₋₁ from I.H.
-    have s := (lemma0 (k + 1) hf).mp
-    rw [show (k + 1 + 1 = k + 2) by norm_num] at s
+    -- Split hypothesis range
+    have splitH0k1 := (lemma0 (k + 1) hf).mp hf_alt_0_kplus1
 
-    -- Show there is a root somewere in [k, k + 1]
-    have hpfkr :=   (s h).right
-    have hpfk2  :=  (s h).left
-    have pfk1 : P f k := by sorry
+    -- Proof that the sign of f alternates for j ∈ {0, …, k} w.r.t. j's parity
+    have f_alt_0_k :=   splitH0k1.right
 
-    have ihs := ih hpfkr
-    have ⟨S, b⟩  := ihs
-    have lm := lemma1 f hf k pfk1 hpfk2
-    change Q S k f at b
+    -- Obtain proofs P(f (k)) and P(f(k+1)) are true
+    have Pfk_plus_1 : P f (k + 1) := splitH0k1.left
+    have Pfk : P f k := ((lemma0 k hf).mp f_alt_0_k).left
 
-    exact lemma2 f hf k ihs lm
+    -- Invoke I.H.: Proof Q holds for set Sₖ ⊆ [0, k]
+    have hqsk := ih f_alt_0_k
+
+    -- Obtain proof Q holds for singleton set {α}₁ ⊆ [k, k + 1]
+    have hqs1 := lemma1 f hf k Pfk Pfk_plus_1
+
+    -- show Q holds for Sₖ₊₁ = Sₖ ∪ {α}₁
+    exact lemma2 k hqsk hqs1
 
 
 
