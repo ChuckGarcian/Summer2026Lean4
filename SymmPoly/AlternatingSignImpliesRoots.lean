@@ -7,7 +7,7 @@ import Mathlib.Data.Finset.Range
 import Mathlib.Data.Real.Basic
 import Mathlib.Data.Finset.Sort
 import Mathlib.Algebra.Group.Even
-import Mathlib.Tactic.Basic -- brings in rcases/and_destruct
+import Mathlib.Tactic.Basic
 import Mathlib.SetTheory.Cardinal.Finite
 import Init.Classical
 import Mathlib.Data.Set.Card
