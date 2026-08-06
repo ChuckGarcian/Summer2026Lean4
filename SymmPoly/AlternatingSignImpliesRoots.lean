@@ -8,6 +8,9 @@ import Mathlib.Data.Real.Basic
 import Mathlib.Data.Finset.Sort
 import Mathlib.Algebra.Group.Even
 import Mathlib.Tactic.Basic -- brings in rcases/and_destruct
+import Mathlib.SetTheory.Cardinal.Finite
+import Init.Classical
+import Mathlib.Data.Set.Card
 
 open Set Finset
 
@@ -15,9 +18,14 @@ noncomputable section
 
 open Set
 
-#check intermediate_value_univ₂
-#check intermediate_value_univ₂ hf hg
-#check intermediate_value_univ₂ hf hg ha hb
+/-Define Predicates-/
+def isRoot (f : ℝ → ℝ) (x : ℝ) : Prop := f x = 0
+
+def P (f : ℝ → ℝ) (x : Nat) : Prop :=
+  (Even x ∧ f x ≤ -(1 / 6 : ℝ)) ∨
+  (Odd x ∧ f x ≥ (1 / 6 : ℝ))
+
+def Q (S : Set ℝ) (n : Nat) (f : ℝ → ℝ) : Prop := S.ncard = n ∧ ∀ x ∈ S, isRoot f x ∧ x ∈ (Set.Icc 0 (n : ℝ))
 
 /- Example: Let g(x) = 0 and f(x) be a continuous function such that
 for some x and y we have that f(x) < g(x) and g(y) < f(y). Then there must
@@ -27,11 +35,9 @@ lemma thm0
   (x y : ℝ)
   (g : ℝ → ℝ) (hg : Continuous g) (hgz : ∀ a, g a = 0)
   (f : ℝ → ℝ) (hf : Continuous f)
-  (ha : f x ≤ 0)
   (ha : f x ≤ g x)
   (hb : g y ≤ f y) :
-  ∃ x : ℝ, f x = 0 := by
-
+  ∃ c : ℝ, f c = 0 := by
     -- Use special case of the intermediate value theorem
     -- Obtain proof that a root exists using IVU
     obtain ⟨w, h⟩ := intermediate_value_univ₂ hf hg ha hb
@@ -47,7 +53,7 @@ def zeroFunc : ℝ → ℝ := fun _ => 0
 for some x and y we have that f(x) < 0 and 0 < f(y). Then there must
 be some value, c ∈ ℝ, such that f(c) = 0.
 -/
-theorem thm1
+lemma thm1
   (x y : ℝ)
   (f : ℝ → ℝ) (hf : Continuous f)
   (ha : f x ≤ 0)
@@ -67,17 +73,18 @@ theorem thm1
 
 #check LE.le.trans
 
-/- Example: Let f(x) be a continuous function such that
+/- Theorem: Special case Intermediate value theorem:
+Let f(x) be a continuous function such that
 for some real numbers x and y, we have that f(x) < -⅙ and ⅙ < f(y). Then there must
 be some real value, c, such that f(c) = 0.
 -/
-theorem thm2
+theorem thm2IVT
   (x y : ℝ)
   (f : ℝ → ℝ)
   (hf : Continuous f)
   (ha : f x ≤ -1/6)
   (hb : 1/6 ≤ f y) :
-  ∃ x : ℝ, f x = 0 := by
+  ∃ x : ℝ, isRoot f x := by
 
     -- Reduce the statement to the more general statement at f(x) ≤ 0 and f(x) ≥ 0; this should be trivial -- emphasis on should :(
     have lowerBoundConv : (-1 : ℝ) / 6 ≤ 0 := by norm_num
@@ -88,184 +95,115 @@ theorem thm2
     -- Theorem one can prove the rest
     apply thm1; repeat' assumption
 
-#eval Finset.range 1
-
-section
-  variable (f : ℝ → ℝ) (hf : Continuous f)
-
-  #check ∀ x : Fin 3, (Even x ∧ f x.val ≤ -1/6) ∨ (Odd x.val ∧ f x ≥ 1/6)
-end section
-
-
-def P (f : ℝ → ℝ) (x : Nat) : Prop :=
-  (Even x ∧ f x ≤ -(1 / 6 : ℝ)) ∨
-  (Odd x ∧ f x ≥ (1 / 6 : ℝ))
-
-def isRoot (f : ℝ → ℝ) (x : ℝ) : Prop := f x = 0
-
-/-
-
--/
-lemma base0
-  (f : ℝ → ℝ) (hf : Continuous f)
-  :
-  (∀ x : Fin (0), P f x) → ∃ s : Finset ℝ, s.card = 0 ∧ ∀ x ∈ s, isRoot f x := by
-    intro h
-
-    apply Exists.intro
-    -- Witness: ∅
-    case w =>
-      exact Finset.empty
-
-    -- Witness Proof
-    case h =>
-      apply And.intro
-
-      -- Prove card(∅) = 0
-      case left =>
-          trivial
-
-      case right =>
-        -- Quanitifer over Emptyset is vacuously true
-        have vacuousTrue := Finset.forall_mem_empty_iff (isRoot f)
-        apply vacuousTrue.mpr; simp
-
-
--- theorem {P : α → Prop} {a : α} {s : Set α} : (∀ x ∈ insert a s, P x) ↔ P a ∧ ∀ x ∈ s, P x
-example (k N : Nat) (P : Nat → Prop) : (∀ x ∈ (Finset.range N), P x) ↔ P k ∧ (∀ x ∈ (Finset.range N), P x) := by
--- lemma lemma0 : ∀ x ∈ Finset.range (k + 1), Even x ∧ f ↑x ≤ -1 / 6 ∨ Odd x ∧ f ↑x ≥ 1 / 6 := by sorry
-
-variable (n : Nat)
--- #check Finset.univ (Finset (Fin 3))
-#check Finset.range (nP)
-
-
-  --
 /- Quantifer Split -/
 lemma lemma0
   (N : ℕ)
   {f : ℝ → ℝ}
   (hf : Continuous f) :
-  (∀ x : Fin (N + 1), P f x) ↔ P f (N + 1) ∧ ∀ x : Fin (N), P f x := by sorry
-
-variable (N : Nat)
-variable (f : ℝ → ℝ) (hf : Continuous f)
-
-#check base0
-#check base0 f
-#check base0 f hf
-#check (lemma0 N hf)
-
--- theorem helper1 (α : Type) (P : α → Prop) (B : Prop) (h : ∀ x, P x → B) :
---   (∀ x, P x) → B := by sorry
-
-  -- (expose_names; exact fun a ↦ Nonempty.elim inst fun a_1 ↦ h a_1 (a a_1))
--- example (k : Nat) : (Finset ℝ, s.card = k ∧ ∀ x ∈ s, isRoot f x) ∧ (P f (k + 1)) →
-#check Finset.range 3
-#check Finset (Fin 3)
-
-#check Finset.map Fin.castSuccEmb (Finset.univ: Finset (Fin N)) ∪ {Fin.last N}
-#check Finset.map Fin.castSuccEmb (Finset.univ : Finset (Fin N)) ∪ {Fin.last N}
-
-#check Fin.last N
-#check Fin.last N
-#check Fin.castSuccEmb N
+  (∀ x : Fin (N + 1), P f x) ↔ P f (N) ∧ ∀ x : Fin (N), P f x := by sorry
 
 
+/-
+Two consective naturals numbers satify predicate P, then there is a root.
+-/
+lemma lemma1
+  (f : ℝ → ℝ) (hf : Continuous f)
+  (n : Nat)
+  (h₁ : P f n)
+  (h₂ : P f (n + 1))
+  :
+  ∃ S : Set ℝ , Q S 1 f := by sorry
+  -- ∃ x : ℝ, isRoot f x ∧ x ∈ (Set.Icc (n : ℝ ) (n + 1 : ℝ)):= by sorry
 
-variable (S : Finset ℝ)
+lemma lemma2
+  (f : ℝ → ℝ)
+  (hf : Continuous f)
+  (n : Nat)
+  (h₁ : ∃ S₁ : Set ℝ , Q S₁ n f)
+  (h₂ : ∃ S₂ : Set ℝ , Q S₂ 1 f) :
+  ∃ T : Set ℝ, Q T (n + 1) f := by sorry
 
-def Q (S : Finset ℝ) (n : Nat) (f : ℝ → ℝ) : Prop := S.card = n ∧ ∀ x ∈ S, isRoot f x
+/-
+Theorem: If every adjecent pair of integers in the set {0, …, n}, when n ≥ 1,
+alternate sign under f (e.g. f(0) < 0 ∧ f(1) > 0), then there is a set S that
+contains roots of f, where |S| = nf.
 
-#check Finset.insert_eq
-variable (α : Type) (p q : α → Prop)
-variable (α : Type) (p q : α → Prop)
+Formaly, the predicate Q(n) is true for any n:
 
+        Q(n): ∀l ∈ {0, …, n}: R(f, l) ⟹ ∃S((|S| = n) ∧ (∀s ∈ S: f(s) = 0))
 
-example (h : ∃ x, p x ∧ q x) : ∃ x, q x ∧ p x := by
-  apply Exists.elim h
-    (fun w =>
-     fun hw : p w ∧ q w =>
-     show ∃ x, q x ∧ p x from ⟨w, hw.right, hw.left⟩)
-
-
+-/
 theorem thmMain
+  (f : ℝ → ℝ) (hf : Continuous f)
   (n : Nat)
   (hn : 1 ≤ n)
   -- (f : ℝ → ℝ) (hf : Continuous f)
   :
-  (∀ x : Fin (n + 1), P f x) → ∃ s : Finset ℝ, Q S n f := by
+  (∀ x : Fin (n + 1), P f x) → ∃ S : Set ℝ, Q S n f := by
 
-  intro x
+  intro h
+  simp [Q]
+
   induction n, hn using Nat.le_induction with
   -- Base Case: n = 1
   | base =>
+    rw [show (1 + 1 = 2) by norm_num] at h
 
-    rw [Q]
-    rw [show (1 + 1 = 2) by norm_num] at x
+    -- Simplify h to: f(0) ≤ -6⁻¹ ∧ 6⁻¹ ≤ f(1)
+    unfold P at h
+    rw [Fin.forall_fin_two] at h
+    simp at h
 
-    -- Supply witness and supporting proof
+    -- subst: 6⁻¹ = ⅙
+    nth_rw 1 [inv_eq_one_div 6] at h
+    rw [neg_div' 6 1] at h
+    rw [inv_eq_one_div 6] at h
+
+    -- Finaly, extract lhs and rhs bounds
+    have f0le6 : f 0 ≤ -1/6 := h.left
+    have f1ge6 : 1/6 ≤ f 1 := h.right
+
+    -- Using IVT, get roots, then put it in a set
+    classical
+    have rtw := thm2IVT 0 1 f hf f0le6 f1ge6
+    -- change (isRoot f ivtw) at ivth
+
+    -- refine ⟨{ivtw}, ?_⟩
+
     apply Exists.intro
+    -- Supply witness
     case w =>
-
-      unfold P at x
-      rw [Fin.forall_fin_two] at x
-      simp at x
-
-      nth_rw 1 [inv_eq_one_div 6] at x
-      rw [neg_div' 6 1] at x
-      rw [inv_eq_one_div 6] at x
-
-      have f0le6 : f 0 ≤ -1/6 := x.left
-      have f1ge6 : 1/6 ≤ f 1 := x.right
-
-      -- Obtain witness root and proof of witness
-      have whp := thm2 0 1 f hf f0le6 f1ge6
-      classical
-      exact {Exists.choose whp}
-
+      exact {Exists.choose rtw}
     case h =>
+
       apply And.intro
 
-        -- Prove card(∅) = 0
       case left =>
-            trivial
+        simp
 
       case right =>
-          -- Quanitifer over Emptyset is vacuously true
-          have vacuousTrue := Finset.forall_mem_empty_iff (isRoot f)
-          apply vacuousTrue.mpr; simp
-      -- have s := base1 f hf x
+        sorry
+        -- simp; exact Exists.choose_spec (rtw)
 
-  | succ =>
-
+  | succ k hk ih =>
+    rw [show (k + 1 + 1 = k + 2) by norm_num] at h
 
     -- Obtain set Sₖ₋₁ from I.H.
-    have ihsk := (lemma0 k hf).mp x
-    have hfpx := (lemma0 k hf).mp x
+    have s := (lemma0 (k + 1) hf).mp
+    rw [show (k + 1 + 1 = k + 2) by norm_num] at s
+
+    -- Show there is a root somewere in [k, k + 1]
+    have hpfkr :=   (s h).right
+    have hpfk2  :=  (s h).left
+    have pfk1 : P f k := by sorry
+
+    have ihs := ih hpfkr
+    have ⟨S, b⟩  := ihs
+    have lm := lemma1 f hf k pfk1 hpfk2
+    change Q S k f at b
+
+    exact lemma2 f hf k ihs lm
 
 
-    --  hfpx : P f (k + 1) ∧ ∀ (x : Fin k), P f ↑x
 
-    have pL := hfpx.left
-    have pR := hfpx.right
-    have h : P f k := by sorry
-
-
-    -- Get the witness set for card k. Now it remains to be shown that the singleton set exists
-
-    -- TODO: Once we get
-    have s := hk pR
-
-
-
-    -- apply lemma0
-
-    rw [Finset.forall_mem_insert (by decide)] at h2
-    sorry
-
-
-example (p q : Nat → Prop) : (∃ x, p x) → ∃ x, p x ∨ q x := by
-  intro h
-  cases h with
-  | intro x px => exists x; apply Or.inl; exact px
+#check Set.ncard_union_eq
